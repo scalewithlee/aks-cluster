@@ -16,15 +16,15 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   # System node pool configuration
   default_node_pool {
-    name                 = "systempool"
-    node_count           = var.system_node_count
-    vm_size              = var.system_node_vm_size
-    vnet_subnet_id       = var.subnet_id
-    auto_scaling_enabled = true
-    min_count            = var.system_node_min_count
-    max_count            = var.system_node_max_count
-    os_disk_size_gb      = 128
-    type                 = "VirtualMachineScaleSets"
+    name                        = "systempool"
+    temporary_name_for_rotation = "temppool"
+    vm_size                     = var.system_node_vm_size
+    vnet_subnet_id              = var.subnet_id
+    enable_auto_scaling         = true
+    min_count                   = var.system_node_min_count
+    max_count                   = var.system_node_max_count
+    os_disk_size_gb             = 128
+    type                        = "VirtualMachineScaleSets"
     node_labels = {
       "nodepool-type" = "system"
       "environment"   = var.environment
@@ -52,10 +52,11 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   # Configure auto-upgrade to stable versions of kubernetes
-  automatic_upgrade_channel = "stable"
+  automatic_channel_upgrade = "stable"
 
   # Azure RBAC integration
   azure_active_directory_role_based_access_control {
+    managed            = true
     azure_rbac_enabled = true
   }
 }
@@ -65,9 +66,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "user" {
   name                  = "userpool"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
   vm_size               = var.user_node_vm_size
-  node_count            = var.user_node_count
   vnet_subnet_id        = var.subnet_id
-  auto_scaling_enabled  = true
+  enable_auto_scaling   = true
   min_count             = var.user_node_min_count
   max_count             = var.user_node_max_count
   os_disk_size_gb       = 128
@@ -76,4 +76,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "user" {
     "environment"   = var.environment
   }
   tags = var.tags
+}
+
+resource "azurerm_role_assignment" "aks_to_acr" {
+  principal_id                     = azurerm_kubernetes_cluster.this.kubelet_identity[0].object_id
+  role_definition_name             = "AcrPull"
+  scope                            = var.acr_id
+  skip_service_principal_aad_check = true
 }

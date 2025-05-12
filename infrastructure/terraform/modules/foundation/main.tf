@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -52,5 +56,21 @@ resource "azurerm_log_analytics_workspace" "this" {
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
+  tags                = var.tags
+}
+
+# Azure container registry
+resource "random_string" "acr_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+  numeric = true
+}
+
+resource "azurerm_container_registry" "this" {
+  name                = "${replace(var.prefix, "-", "")}${var.environment}acr${random_string.acr_suffix.result}"
+  resource_group_name = azurerm_resource_group.this.name
+  location            = azurerm_resource_group.this.location
+  sku                 = "Standard"
   tags                = var.tags
 }

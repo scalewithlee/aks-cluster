@@ -34,12 +34,6 @@ variable "kubernetes_version" {
   default     = "1.32.0"
 }
 
-variable "system_node_count" {
-  description = "The initial number of system nodes in the AKS cluster"
-  type        = number
-  default     = 1
-}
-
 variable "system_node_min_count" {
   description = "The minimum number of system nodes in the AKS cluster"
   type        = number
@@ -55,13 +49,7 @@ variable "system_node_max_count" {
 variable "system_node_vm_size" {
   description = "The VM size for the system nodes"
   type        = string
-  default     = "Standard_D2s_v3"
-}
-
-variable "user_node_count" {
-  description = "The initial number of user nodes in the AKS cluster"
-  type        = number
-  default     = 1
+  default     = "Standard_B2s"
 }
 
 variable "user_node_min_count" {
@@ -79,7 +67,7 @@ variable "user_node_max_count" {
 variable "user_node_vm_size" {
   description = "The VM size for the user nodes"
   type        = string
-  default     = "Standard_D4s_v3"
+  default     = "Standard_B2s"
 }
 
 variable "service_cidr" {
@@ -98,4 +86,9 @@ variable "tags" {
   description = "A map of tags to apply to all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "acr_id" {
+  description = "The ID of the Azure Container Registry"
+  type        = string
 }
